@@ -1,0 +1,702 @@
+<title>Amino Acid Odds</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,wght@0,400;0,500;0,600;1,400;1,500&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+  :root{
+    --bg:#eef1f3;
+    --surface:#ffffff;
+    --surface-2:#f5f8f9;
+    --ink:#101820;
+    --ink-soft:#4f5e67;
+    --ink-faint:#8898a2;
+    --accent:#1f6f78;
+    --accent-strong:#12464d;
+    --accent-soft:rgba(31,111,120,.12);
+    --gold:#b8791c;
+    --gold-soft:rgba(184,121,28,.16);
+    --green:#2f7d4f;
+    --green-soft:rgba(47,125,79,.14);
+    --red:#a8443b;
+    --red-soft:rgba(168,68,59,.12);
+    --border:rgba(16,24,32,.13);
+    --shadow:0 1px 2px rgba(16,24,32,.07), 0 10px 28px rgba(16,24,32,.07);
+    --liquid-top:#8fd0d6;
+    --liquid-bottom:#1f6f78;
+    color-scheme:light;
+  }
+  @media (prefers-color-scheme:dark){
+    :root:not([data-theme="light"]){
+      --bg:#0c1315;
+      --surface:#141d21;
+      --surface-2:#182228;
+      --ink:#edf3f5;
+      --ink-soft:#aebcc3;
+      --ink-faint:#728089;
+      --accent:#5cbcc4;
+      --accent-strong:#93d9df;
+      --accent-soft:rgba(92,188,196,.16);
+      --gold:#e3a94f;
+      --gold-soft:rgba(227,169,79,.18);
+      --green:#6bc98d;
+      --green-soft:rgba(107,201,141,.16);
+      --red:#e0857b;
+      --red-soft:rgba(224,133,123,.16);
+      --border:rgba(237,243,245,.14);
+      --shadow:0 1px 2px rgba(0,0,0,.35), 0 10px 28px rgba(0,0,0,.4);
+      --liquid-top:#2f8790;
+      --liquid-bottom:#0d3438;
+      color-scheme:dark;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#0c1315;
+    --surface:#141d21;
+    --surface-2:#182228;
+    --ink:#edf3f5;
+    --ink-soft:#aebcc3;
+    --ink-faint:#728089;
+    --accent:#5cbcc4;
+    --accent-strong:#93d9df;
+    --accent-soft:rgba(92,188,196,.16);
+    --gold:#e3a94f;
+    --gold-soft:rgba(227,169,79,.18);
+    --green:#6bc98d;
+    --green-soft:rgba(107,201,141,.16);
+    --red:#e0857b;
+    --red-soft:rgba(224,133,123,.16);
+    --border:rgba(237,243,245,.14);
+    --shadow:0 1px 2px rgba(0,0,0,.35), 0 10px 28px rgba(0,0,0,.4);
+    --liquid-top:#2f8790;
+    --liquid-bottom:#0d3438;
+    color-scheme:dark;
+  }
+
+  *{box-sizing:border-box;}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:'IBM Plex Sans',system-ui,-apple-system,sans-serif;
+    margin:0;
+    padding-inline:20px;
+    padding-block:36px 56px;
+  }
+  .page{max-width:900px;margin:0 auto;display:flex;flex-direction:column;gap:28px;}
+
+  .eyebrow{
+    font-family:'IBM Plex Mono',ui-monospace,monospace;
+    font-size:12px;letter-spacing:.09em;text-transform:uppercase;
+    color:var(--accent-strong);font-weight:600;
+  }
+  h1{
+    font-family:'Newsreader',Georgia,serif;
+    font-weight:600;
+    font-size:clamp(28px,4.4vw,42px);
+    line-height:1.12;
+    margin:6px 0 4px;
+    text-wrap:balance;
+    color:var(--ink);
+  }
+  .intro{
+    font-size:16px;line-height:1.6;color:var(--ink-soft);max-width:65ch;
+  }
+  .intro b{color:var(--ink);font-weight:600;}
+  .note{
+    font-size:13.5px;line-height:1.55;color:var(--ink-faint);
+    border-left:3px solid var(--border);padding-left:12px;max-width:62ch;
+  }
+
+  .card{
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:16px;
+    box-shadow:var(--shadow);
+    padding:24px;
+  }
+  .card h2{
+    font-family:'Newsreader',Georgia,serif;
+    font-weight:600;font-size:21px;margin:0 0 4px;color:var(--ink);
+  }
+  .card .sub{font-size:13.5px;color:var(--ink-faint);margin:0 0 18px;line-height:1.5;}
+
+  .lab{display:grid;grid-template-columns:minmax(0,300px) minmax(0,1fr);gap:28px;align-items:start;}
+  @media (max-width:640px){.lab{grid-template-columns:1fr;}}
+
+  .beaker-wrap{display:flex;flex-direction:column;align-items:center;gap:10px;}
+  .beaker-wrap svg{width:100%;max-width:280px;height:auto;overflow:visible;}
+  .tile-label{
+    font-family:'IBM Plex Mono',monospace;font-weight:600;
+    fill:var(--ink);pointer-events:none;
+  }
+  .tile-disc{fill:var(--surface);stroke:var(--border);stroke-width:1.2;
+    filter:drop-shadow(0 1px 1px rgba(0,0,0,.18));
+    transform-box:fill-box;transform-origin:center;
+    transition:transform .55s cubic-bezier(.34,1.56,.64,1), filter .55s ease, stroke .55s ease;
+  }
+  .tile{transform-box:fill-box;transform-origin:center;}
+  .tile.drawn .tile-disc{
+    transform:scale(1.55);
+    stroke:var(--gold);stroke-width:2;
+    filter:drop-shadow(0 3px 8px rgba(184,121,28,.55));
+  }
+  @media (prefers-reduced-motion:reduce){
+    .tile-disc{transition:stroke .2s ease, filter .2s ease;}
+    .tile.drawn .tile-disc{transform:none;}
+  }
+  .beaker-caption{font-size:12.5px;color:var(--ink-faint);text-align:center;max-width:260px;line-height:1.5;}
+
+  .panel{display:flex;flex-direction:column;gap:18px;}
+  .target-row{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;}
+  .target-label{font-size:12.5px;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-faint);font-weight:600;}
+  .target-seq{
+    font-family:'IBM Plex Mono',monospace;font-weight:600;font-size:20px;letter-spacing:.06em;color:var(--accent-strong);
+  }
+
+  .slots{display:flex;gap:10px;}
+  .slot{
+    width:54px;height:54px;border-radius:12px;border:1.5px dashed var(--border);
+    display:flex;align-items:center;justify-content:center;
+    font-family:'IBM Plex Mono',monospace;font-weight:600;font-size:22px;color:var(--ink-faint);
+    background:var(--surface-2);
+    transition:background .3s ease, border-color .3s ease, color .3s ease, transform .3s ease;
+  }
+  .slot.filled{border-style:solid;color:var(--ink);}
+  .slot.match{background:var(--green-soft);border-color:var(--green);color:var(--green);}
+  .slot.miss{background:var(--red-soft);border-color:var(--red);color:var(--red);}
+  .slot.active{border-color:var(--gold);box-shadow:0 0 0 3px var(--gold-soft);}
+
+  .controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
+  button{
+    font-family:'IBM Plex Sans',sans-serif;font-weight:600;font-size:14px;
+    padding:10px 16px;border-radius:10px;border:1px solid transparent;cursor:pointer;
+    transition:background .18s ease, border-color .18s ease, opacity .18s ease, transform .1s ease;
+  }
+  button:active{transform:translateY(1px);}
+  button.primary{background:var(--accent);color:#fff;}
+  button.primary:hover{background:var(--accent-strong);}
+  button.primary:disabled{opacity:.4;cursor:not-allowed;}
+  button.ghost{background:transparent;color:var(--ink-soft);border-color:var(--border);}
+  button.ghost:hover{border-color:var(--ink-faint);color:var(--ink);}
+  button.chip{background:var(--surface-2);color:var(--ink);border-color:var(--border);font-family:'IBM Plex Mono',monospace;font-size:13px;}
+  button.chip:hover{border-color:var(--accent);color:var(--accent-strong);}
+
+  .readout{
+    font-size:14px;line-height:1.6;color:var(--ink-soft);min-height:22px;
+  }
+  .readout b{color:var(--ink);font-family:'IBM Plex Mono',monospace;font-weight:600;}
+  .readout .result-p{color:var(--accent-strong);font-weight:600;}
+
+  .stat-row{display:flex;flex-wrap:wrap;gap:12px;}
+  .stat{
+    background:var(--surface-2);border:1px solid var(--border);border-radius:12px;
+    padding:12px 16px;min-width:132px;flex:1;
+  }
+  .stat .k{font-size:11.5px;text-transform:uppercase;letter-spacing:.07em;color:var(--ink-faint);font-weight:600;}
+  .stat .v{font-family:'IBM Plex Mono',monospace;font-size:18px;font-weight:600;color:var(--ink);font-variant-numeric:tabular-nums;margin-top:3px;}
+  .stat .v.accent{color:var(--accent-strong);}
+  .stat .v.gold{color:var(--gold);}
+
+  .axis-wrap{margin-top:6px;}
+  .axis-wrap svg{width:100%;height:auto;}
+  .axis-label{font-family:'IBM Plex Mono',monospace;font-size:10.5px;fill:var(--ink-faint);}
+
+  .formula-box{
+    background:var(--surface-2);border:1px solid var(--border);border-radius:12px;
+    padding:18px 20px;font-family:'IBM Plex Mono',monospace;font-size:14.5px;line-height:2;color:var(--ink);
+    overflow-x:auto;
+  }
+  .formula-box .op{color:var(--ink-faint);}
+  .formula-box .hi{color:var(--accent-strong);font-weight:600;}
+  .formula-box .gold{color:var(--gold);font-weight:600;}
+
+  table{border-collapse:collapse;width:100%;font-size:13.5px;}
+  th,td{text-align:left;padding:7px 10px;border-bottom:1px solid var(--border);}
+  th{font-family:'IBM Plex Mono',monospace;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink-faint);font-weight:600;}
+  td.code{font-family:'IBM Plex Mono',monospace;font-weight:600;color:var(--ink);}
+  td.num{font-family:'IBM Plex Mono',monospace;font-variant-numeric:tabular-nums;text-align:right;color:var(--ink-soft);}
+  .table-wrap{overflow-x:auto;}
+
+  details{border:1px solid var(--border);border-radius:14px;background:var(--surface);box-shadow:var(--shadow);}
+  summary{
+    cursor:pointer;padding:18px 24px;font-family:'Newsreader',Georgia,serif;font-weight:600;font-size:18px;
+    display:flex;align-items:center;justify-content:space-between;list-style:none;
+  }
+  summary::-webkit-details-marker{display:none;}
+  summary .arrow{font-family:'IBM Plex Mono',monospace;color:var(--ink-faint);transition:transform .2s ease;font-size:13px;}
+  details[open] summary .arrow{transform:rotate(90deg);}
+  .details-body{padding:0 24px 22px;}
+
+  .cite{font-size:12.5px;color:var(--ink-faint);margin-top:12px;line-height:1.6;}
+  footer{font-size:12.5px;color:var(--ink-faint);text-align:center;padding-top:8px;}
+</style>
+
+<div class="page">
+
+  <div>
+    <div class="eyebrow">Probability &middot; Sequence Chemistry</div>
+    <h1>What are the odds of drawing S&ndash;G&ndash;G&ndash;S?</h1>
+    <p class="intro">Imagine a beaker holding one copy of each of the 20 amino acids, sized here by how often that residue actually turns up in real proteins. Reach in, note which one you grabbed, and <b>drop it back in</b> before reaching again &mdash; so every draw sees the same odds. Do that four times. This page simulates exactly that, and calculates the chance those four draws spell out <b>Ser&ndash;Gly&ndash;Gly&ndash;Ser</b>.</p>
+    <p class="note">The 20 tiles are sized by the background amino-acid frequencies associated with the <b>BLOSUM62</b> substitution matrix (Henikoff &amp; Henikoff, 1992) &mdash; BLOSUM62 itself is a table of pairwise substitution scores, not a frequency table, but its derivation rests on exactly this single-residue frequency distribution, and it's the standard stand-in for "how common is each amino acid in real proteins."</p>
+  </div>
+
+  <div class="card">
+    <h2>Draw from the beaker</h2>
+    <p class="sub">Sampling with replacement: each draw is independent and identically distributed &mdash; the tile always goes back before the next reach.</p>
+    <div class="lab">
+      <div class="beaker-wrap">
+        <svg id="beakerSvg" viewBox="0 0 320 380" aria-label="Beaker containing 20 amino acid tiles, sized by natural frequency"></svg>
+        <div class="beaker-caption">Tile area &prop; residue frequency. Larger tiles (Leu, Ala, Gly&hellip;) are simply more common in nature &mdash; not more likely to be chosen for any other reason.</div>
+      </div>
+      <div class="panel">
+        <div class="target-row">
+          <span class="target-label">Target sequence</span>
+          <span class="target-seq">S &middot; G &middot; G &middot; S</span>
+        </div>
+        <div class="slots" id="slots">
+          <div class="slot" data-i="0">1</div>
+          <div class="slot" data-i="1">2</div>
+          <div class="slot" data-i="2">3</div>
+          <div class="slot" data-i="3">4</div>
+        </div>
+        <div class="controls">
+          <button class="primary" id="drawBtn">Draw a residue</button>
+          <button class="ghost" id="resetBtn">Reset</button>
+        </div>
+        <div class="readout" id="drawReadout">Click <b>Draw a residue</b> to reach into the beaker for the first time.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Run it thousands of times</h2>
+    <p class="sub">Clicking by hand won't realistically land on S&ndash;G&ndash;G&ndash;S &mdash; it's far too rare for that. This runs the same four-draw experiment instantly, many times over, and counts exact hits.</p>
+    <div class="controls">
+      <button class="chip" data-n="1000">+1,000 trials</button>
+      <button class="chip" data-n="10000">+10,000 trials</button>
+      <button class="chip" data-n="100000">+100,000 trials</button>
+      <button class="chip" data-n="1000000">+1,000,000 trials</button>
+      <button class="ghost" id="trialsResetBtn">Reset trials</button>
+    </div>
+    <div class="stat-row" style="margin-top:16px;">
+      <div class="stat"><div class="k">Trials run</div><div class="v" id="statTrials">0</div></div>
+      <div class="stat"><div class="k">Exact S&ndash;G&ndash;G&ndash;S hits</div><div class="v gold" id="statHits">0</div></div>
+      <div class="stat"><div class="k">Empirical odds</div><div class="v accent" id="statEmpirical">&mdash;</div></div>
+      <div class="stat"><div class="k">Theoretical odds</div><div class="v accent" id="statTheoretical">&mdash;</div></div>
+    </div>
+    <div class="axis-wrap">
+      <svg id="axisSvg" viewBox="0 0 700 70"></svg>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>The math behind the number</h2>
+    <p class="sub">Four independent draws, so the joint probability is the product of the four individual probabilities.</p>
+    <div class="formula-box" id="formulaBox">Calculating&hellip;</div>
+  </div>
+
+  <div class="card">
+    <h2>A second way to score the same four letters</h2>
+    <p class="sub">Not as an ordered word this time, but as a <i>composition</i> &mdash; the mix of letters in a single alignment column, scored against the same BLOSUM62 background used above.</p>
+    <p style="font-size:14px;line-height:1.6;color:var(--ink-soft);margin:0 0 14px;">Take the same four letters, S&ndash;G&ndash;G&ndash;S, but stop treating them as a sequence with an order. Just count them: S appears in 2 of the 4 positions (f<sub>S</sub> = 0.50), and G appears in the other 2 (f<sub>G</sub> = 0.50). That's exactly the situation at one real alignment column &mdash; two species carrying Ser, two carrying Gly. Plugging that observed composition into the relative-entropy formula, weighted against the BLOSUM62 background instead of a uniform one, gives a very different number from the 15.78 bits above:</p>
+    <div class="formula-box" id="compositionBox">Calculating&hellip;</div>
+    <p class="note" style="margin-top:16px;">These aren't two routes to the same answer &mdash; they score different questions. The box above this one asks how surprising it is to draw this <i>exact ordered string</i> from the background, four letters in a row. This box asks how far this column's <i>composition</i> (50% Ser, 50% Gly, ignoring order entirely) has drifted from what background chance predicts &mdash; the same calculation used to score a real alignment column's conservation. A narrower question (match this exact order) always carries more bits than a broader one (match this mix, any order) built from the same letters.</p>
+  </div>
+
+  <details>
+    <summary>All 20 background frequencies <span class="arrow">&#9656;</span></summary>
+    <div class="details-body">
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>1-letter</th><th>3-letter</th><th>Name</th><th style="text-align:right;">Frequency</th></tr></thead>
+          <tbody id="freqTableBody"></tbody>
+        </table>
+      </div>
+      <p class="cite">Background amino-acid frequencies associated with the BLOSUM62 substitution matrix: S. Henikoff &amp; J. G. Henikoff, "Amino acid substitution matrices from protein blocks," <i>PNAS</i> 89 (1992): 10915&ndash;10919; reproduced in the NCBI BLAST scoring-matrix distribution.</p>
+    </div>
+  </details>
+
+  <footer>Sampling is with replacement throughout &mdash; drawing a tile never changes the odds of the next draw.</footer>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  var AA = [
+    {c:'A',n3:'Ala',name:'Alanine',f:0.074},
+    {c:'R',n3:'Arg',name:'Arginine',f:0.052},
+    {c:'N',n3:'Asn',name:'Asparagine',f:0.045},
+    {c:'D',n3:'Asp',name:'Aspartate',f:0.054},
+    {c:'C',n3:'Cys',name:'Cysteine',f:0.025},
+    {c:'Q',n3:'Gln',name:'Glutamine',f:0.034},
+    {c:'E',n3:'Glu',name:'Glutamate',f:0.054},
+    {c:'G',n3:'Gly',name:'Glycine',f:0.074},
+    {c:'H',n3:'His',name:'Histidine',f:0.026},
+    {c:'I',n3:'Ile',name:'Isoleucine',f:0.068},
+    {c:'L',n3:'Leu',name:'Leucine',f:0.099},
+    {c:'K',n3:'Lys',name:'Lysine',f:0.058},
+    {c:'M',n3:'Met',name:'Methionine',f:0.025},
+    {c:'F',n3:'Phe',name:'Phenylalanine',f:0.047},
+    {c:'P',n3:'Pro',name:'Proline',f:0.039},
+    {c:'S',n3:'Ser',name:'Serine',f:0.057},
+    {c:'T',n3:'Thr',name:'Threonine',f:0.051},
+    {c:'W',n3:'Trp',name:'Tryptophan',f:0.013},
+    {c:'Y',n3:'Tyr',name:'Tyrosine',f:0.032},
+    {c:'V',n3:'Val',name:'Valine',f:0.073}
+  ];
+  var TARGET = ['S','G','G','S'];
+  var byCode = {};
+  AA.forEach(function(a){ byCode[a.c] = a; });
+
+  function fmtPct(f){ return (f*100).toFixed(1) + '%'; }
+  function fmtInt(n){ return n.toLocaleString('en-US'); }
+
+  // ---------- weighted draw ----------
+  function drawResidue(){
+    var r = Math.random(), cum = 0;
+    for (var i=0;i<AA.length;i++){ cum += AA[i].f; if (r <= cum) return AA[i]; }
+    return AA[AA.length-1];
+  }
+
+  // ---------- seeded RNG for a stable tile layout ----------
+  function mulberry32(seed){
+    return function(){
+      seed |= 0; seed = (seed + 0x6D2B79F5) | 0;
+      var t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+  var rng = mulberry32(20260927);
+
+  // ---------- circle packing inside an elliptical liquid region ----------
+  function packTiles(){
+    var cx = 160, cy = 230, ea = 118, eb = 128;
+    var rMax = 27, rMin = 9.6, fMax = Math.max.apply(null, AA.map(function(a){return a.f;}));
+    var nodes = AA.map(function(a){
+      var r = rMin + (rMax-rMin) * (Math.sqrt(a.f/fMax));
+      return { aa:a, r:r, x: cx + (rng()-0.5)*8, y: cy + (rng()-0.5)*8 };
+    });
+    for (var iter=0; iter<420; iter++){
+      for (var i=0;i<nodes.length;i++){
+        for (var j=i+1;j<nodes.length;j++){
+          var A=nodes[i], B=nodes[j];
+          var dx=B.x-A.x, dy=B.y-A.y;
+          var dist=Math.sqrt(dx*dx+dy*dy) || 0.01;
+          var minDist = A.r + B.r + 2.2;
+          if (dist < minDist){
+            var overlap=(minDist-dist)/2;
+            var ux=dx/dist, uy=dy/dist;
+            A.x -= ux*overlap; A.y -= uy*overlap;
+            B.x += ux*overlap; B.y += uy*overlap;
+          }
+        }
+      }
+      for (var k=0;k<nodes.length;k++){
+        var nd = nodes[k];
+        var ddx = nd.x-cx, ddy = nd.y-cy;
+        var ea2 = Math.max(ea-nd.r, 4), eb2 = Math.max(eb-nd.r, 4);
+        var val = (ddx/ea2)*(ddx/ea2) + (ddy/eb2)*(ddy/eb2);
+        if (val > 1){
+          var scale = 1/Math.sqrt(val);
+          nd.x = cx + ddx*scale;
+          nd.y = cy + ddy*scale;
+        }
+      }
+    }
+    return nodes;
+  }
+
+  // ---------- beaker SVG ----------
+  var SVGNS = 'http://www.w3.org/2000/svg';
+  function el(tag, attrs){
+    var e = document.createElementNS(SVGNS, tag);
+    for (var k in attrs) e.setAttribute(k, attrs[k]);
+    return e;
+  }
+
+  function buildBeaker(){
+    var svg = document.getElementById('beakerSvg');
+    svg.innerHTML = '';
+
+    var defs = el('defs',{});
+    var grad = el('linearGradient',{id:'liquidGrad',x1:'0',y1:'0',x2:'0',y2:'1'});
+    grad.appendChild(el('stop',{offset:'0%','stop-color':'var(--liquid-top)','stop-opacity':'0.85'}));
+    grad.appendChild(el('stop',{offset:'100%','stop-color':'var(--liquid-bottom)','stop-opacity':'0.92'}));
+    defs.appendChild(grad);
+    var clip = el('clipPath',{id:'beakerClip'});
+    clip.appendChild(el('path',{d:'M40 40 L40 320 Q40 346 66 346 L254 346 Q280 346 280 320 L280 40 Z'}));
+    defs.appendChild(clip);
+    svg.appendChild(defs);
+
+    // liquid fill (clipped)
+    var liquidGroup = el('g',{'clip-path':'url(#beakerClip)'});
+    liquidGroup.appendChild(el('rect',{x:34,y:118,width:252,height:236,fill:'url(#liquidGrad)'}));
+    liquidGroup.appendChild(el('path',{d:'M34 118 Q80 108 160 118 T286 118 L286 128 Q206 118 160 128 T34 128 Z',fill:'var(--liquid-top)',opacity:'0.55'}));
+    svg.appendChild(liquidGroup);
+
+    // beaker outline
+    var outline = el('path',{
+      d:'M46 30 L34 62 L34 320 Q34 346 66 346 L254 346 Q286 346 286 320 L286 62 L274 30',
+      fill:'none', stroke:'var(--ink-faint)', 'stroke-width':'3','stroke-linejoin':'round','stroke-linecap':'round'
+    });
+    svg.appendChild(outline);
+    // spout
+    svg.appendChild(el('path',{d:'M274 30 L296 16 L286 40', fill:'none', stroke:'var(--ink-faint)', 'stroke-width':'3','stroke-linejoin':'round','stroke-linecap':'round'}));
+    // rim
+    svg.appendChild(el('line',{x1:46,y1:30,x2:274,y2:30,stroke:'var(--ink-faint)','stroke-width':'3','stroke-linecap':'round'}));
+    // measurement ticks
+    [110,180,250].forEach(function(y){
+      svg.appendChild(el('line',{x1:34,y1:y,x2:48,y2:y,stroke:'var(--ink-faint)','stroke-width':'2',opacity:'0.55'}));
+    });
+
+    // tiles
+    var nodes = packTiles();
+    var tileLayer = el('g',{});
+    nodes.forEach(function(nd){
+      var g = el('g',{'class':'tile','data-code':nd.aa.c});
+      var disc = el('circle',{cx:nd.x,cy:nd.y,r:nd.r,'class':'tile-disc'});
+      g.appendChild(disc);
+      var label = el('text',{
+        x:nd.x, y:nd.y, 'text-anchor':'middle','dominant-baseline':'central',
+        'class':'tile-label', 'font-size': Math.max(9, nd.r*0.85)
+      });
+      label.textContent = nd.aa.c;
+      g.appendChild(label);
+      var title = el('title',{});
+      title.textContent = nd.aa.name + ' (' + nd.aa.n3 + ') — ' + fmtPct(nd.aa.f) + ' of residues';
+      g.appendChild(title);
+      tileLayer.appendChild(g);
+    });
+    svg.appendChild(tileLayer);
+  }
+
+  function flashTile(code){
+    var g = document.querySelector('.tile[data-code="'+code+'"]');
+    if (!g) return;
+    g.classList.add('drawn');
+    setTimeout(function(){ g.classList.remove('drawn'); }, 900);
+  }
+
+  // ---------- draw-4 game ----------
+  var slotsEl = document.getElementById('slots');
+  var drawBtn = document.getElementById('drawBtn');
+  var resetBtn = document.getElementById('resetBtn');
+  var readout = document.getElementById('drawReadout');
+  var state = { slots: [null,null,null,null], idx: 0 };
+
+  function renderSlots(){
+    var els = slotsEl.querySelectorAll('.slot');
+    els.forEach(function(el, i){
+      el.classList.remove('filled','match','miss','active');
+      var aa = state.slots[i];
+      if (aa){
+        el.textContent = aa.c;
+        el.classList.add('filled');
+        el.classList.add(aa.c === TARGET[i] ? 'match' : 'miss');
+      } else {
+        el.textContent = String(i+1);
+        if (i === state.idx) el.classList.add('active');
+      }
+    });
+  }
+
+  function renderReadout(){
+    if (state.idx === 0){
+      readout.innerHTML = 'Click <b>Draw a residue</b> to reach into the beaker for the first time.';
+      return;
+    }
+    var last = state.slots[state.idx-1];
+    var parts = ['Draw ' + state.idx + ': <b>' + last.c + '</b> (' + last.name + ') &mdash; p = <b>' + last.f.toFixed(3) + '</b> (' + fmtPct(last.f) + ' of residues).'];
+    if (state.idx === 4){
+      var product = state.slots.reduce(function(p,a){ return p*a.f; }, 1);
+      var matches = state.slots.every(function(a,i){ return a.c === TARGET[i]; });
+      parts.push('Product of all four draw probabilities: <span class="result-p">' + product.toExponential(2) + '</span>.');
+      parts.push(matches ? '<b style="color:var(--green)">That’s an exact S–G–G–S — extraordinarily lucky!</b>' : 'Compare this run’s letters to the S–G–G–S target above using the colored slots.');
+    }
+    readout.innerHTML = parts.join(' ');
+  }
+
+  function doDraw(){
+    if (state.idx >= 4) return;
+    var aa = drawResidue();
+    flashTile(aa.c);
+    state.slots[state.idx] = aa;
+    state.idx += 1;
+    renderSlots();
+    renderReadout();
+    drawBtn.disabled = state.idx >= 4;
+    saveSnapshot();
+  }
+
+  function doReset(){
+    state.slots = [null,null,null,null];
+    state.idx = 0;
+    drawBtn.disabled = false;
+    renderSlots();
+    renderReadout();
+    saveSnapshot();
+  }
+
+  drawBtn.addEventListener('click', doDraw);
+  resetBtn.addEventListener('click', doReset);
+
+  // ---------- Monte Carlo trials ----------
+  var trialState = { trials: 0, hits: 0 };
+  var pS = byCode.S.f, pG = byCode.G.f;
+  var theoreticalP = pS*pG*pG*pS;
+
+  function updateTrialsUI(){
+    document.getElementById('statTrials').textContent = fmtInt(trialState.trials);
+    document.getElementById('statHits').textContent = fmtInt(trialState.hits);
+    var empEl = document.getElementById('statEmpirical');
+    if (trialState.hits > 0){
+      var empP = trialState.hits / trialState.trials;
+      empEl.textContent = '1 in ' + fmtInt(Math.round(1/empP));
+    } else if (trialState.trials > 0) {
+      empEl.textContent = '0 so far';
+    } else {
+      empEl.textContent = '—';
+    }
+    document.getElementById('statTheoretical').textContent = '1 in ' + fmtInt(Math.round(1/theoreticalP));
+    drawAxis();
+  }
+
+  function runTrials(n){
+    var hits = 0;
+    for (var k=0;k<n;k++){
+      var s0=drawResidue().c, s1=drawResidue().c, s2=drawResidue().c, s3=drawResidue().c;
+      if (s0===TARGET[0] && s1===TARGET[1] && s2===TARGET[2] && s3===TARGET[3]) hits++;
+    }
+    trialState.trials += n;
+    trialState.hits += hits;
+    updateTrialsUI();
+    saveSnapshot();
+  }
+
+  document.querySelectorAll('button.chip[data-n]').forEach(function(btn){
+    btn.addEventListener('click', function(){ runTrials(parseInt(btn.getAttribute('data-n'),10)); });
+  });
+  document.getElementById('trialsResetBtn').addEventListener('click', function(){
+    trialState = { trials:0, hits:0 };
+    updateTrialsUI();
+    saveSnapshot();
+  });
+
+  function drawAxis(){
+    var svg = document.getElementById('axisSvg');
+    svg.innerHTML = '';
+    var x0=20, x1=680, y=38, lo=-7, hi=-2; // log10 scale from 1e-7 to 1e-2
+    function xFor(p){
+      var lv = Math.log10(Math.max(p, Math.pow(10,lo)));
+      var t = (lv-lo)/(hi-lo);
+      return x0 + t*(x1-x0);
+    }
+    svg.appendChild(el('line',{x1:x0,y1:y,x2:x1,y2:y,stroke:'var(--border)','stroke-width':'2'}));
+    for (var e=lo; e<=hi; e++){
+      var xt = xFor(Math.pow(10,e));
+      svg.appendChild(el('line',{x1:xt,y1:y-5,x2:xt,y2:y+5,stroke:'var(--border)','stroke-width':'1.5'}));
+      var lab = el('text',{x:xt,y:y+22,'text-anchor':'middle','class':'axis-label'});
+      lab.textContent = '1e' + e;
+      svg.appendChild(lab);
+    }
+    // theoretical marker
+    var txt = xFor(theoreticalP);
+    svg.appendChild(el('circle',{cx:txt,cy:y,r:6,fill:'var(--accent)'}));
+    var tlab = el('text',{x:txt,y:y-12,'text-anchor':'middle','class':'axis-label',fill:'var(--accent-strong)'});
+    tlab.textContent = 'theoretical';
+    svg.appendChild(tlab);
+    // empirical marker
+    if (trialState.hits > 0){
+      var empP = trialState.hits/trialState.trials;
+      var ex = xFor(empP);
+      svg.appendChild(el('circle',{cx:ex,cy:y,r:6,fill:'var(--gold)'}));
+      var elab = el('text',{x:ex,y:y+40,'text-anchor':'middle','class':'axis-label',fill:'var(--gold)'});
+      elab.textContent = 'empirical';
+      svg.appendChild(elab);
+    }
+  }
+
+  // ---------- formula box ----------
+  function renderFormula(){
+    var bits = -Math.log2(theoreticalP);
+    var oneInX = Math.round(1/theoreticalP);
+    var html =
+      'P(S–G–G–S) <span class="op">=</span> p(S) <span class="op">&times;</span> p(G) <span class="op">&times;</span> p(G) <span class="op">&times;</span> p(S)<br>' +
+      '<span class="op">=</span> ' + pS.toFixed(3) + ' <span class="op">&times;</span> ' + pG.toFixed(3) + ' <span class="op">&times;</span> ' + pG.toFixed(3) + ' <span class="op">&times;</span> ' + pS.toFixed(3) + '<br>' +
+      '<span class="op">=</span> <span class="hi">' + theoreticalP.toExponential(3) + '</span>  <span class="op">≈ 1 in ' + fmtInt(oneInX) + '</span><br><br>' +
+      'Information content: <span class="op">I =</span> &minus;log<sub>2</sub>P <span class="op">=</span> <span class="gold">' + bits.toFixed(2) + ' bits</span>';
+    document.getElementById('formulaBox').innerHTML = html;
+  }
+
+  // ---------- composition / conservation-score formula (I = sum f_i log2(f_i/q_i)) ----------
+  function renderCompositionFormula(){
+    var compS = 0.5, compG = 0.5; // S,G,G,S counted as a composition: 2 of 4 each
+    var log2S = Math.log2(compS/pS);
+    var log2G = Math.log2(compG/pG);
+    var termS = compS*log2S, termG = compG*log2G;
+    var totalI = termS+termG;
+    var html =
+      'I <span class="op">=</span> &Sigma;<sub>i</sub> f<sub>i</sub> log<sub>2</sub>(f<sub>i</sub>/q<sub>i</sub>)<br>' +
+      '<span class="op">=</span> f(S)&middot;log<sub>2</sub>(f(S)/q(S)) <span class="op">+</span> f(G)&middot;log<sub>2</sub>(f(G)/q(G))<br>' +
+      '<span class="op">=</span> ' + compS.toFixed(2) + ' <span class="op">&times;</span> log<sub>2</sub>(' + compS.toFixed(2) + '/' + pS.toFixed(3) + ') <span class="op">+</span> ' +
+        compG.toFixed(2) + ' <span class="op">&times;</span> log<sub>2</sub>(' + compG.toFixed(2) + '/' + pG.toFixed(3) + ')<br>' +
+      '<span class="op">=</span> (' + compS.toFixed(2) + ' <span class="op">&times;</span> ' + log2S.toFixed(2) + ') <span class="op">+</span> (' +
+        compG.toFixed(2) + ' <span class="op">&times;</span> ' + log2G.toFixed(2) + ')<br>' +
+      '<span class="op">=</span> <span class="gold">' + totalI.toFixed(2) + ' bits</span>';
+    document.getElementById('compositionBox').innerHTML = html;
+  }
+
+  // ---------- frequency table ----------
+  function renderFreqTable(){
+    var tbody = document.getElementById('freqTableBody');
+    var sorted = AA.slice().sort(function(a,b){ return b.f-a.f; });
+    tbody.innerHTML = sorted.map(function(a){
+      return '<tr><td class="code">' + a.c + '</td><td>' + a.n3 + '</td><td>' + a.name + '</td><td class="num">' + fmtPct(a.f) + '</td></tr>';
+    }).join('');
+  }
+
+  // ---------- hot snapshot (keeps state for viewers already on the page) ----------
+  function getSnapshot(){
+    return {
+      slots: state.slots.map(function(a){ return a ? a.c : null; }),
+      idx: state.idx,
+      trials: trialState.trials,
+      hits: trialState.hits
+    };
+  }
+  function saveSnapshot(){
+    try{ window.claude && window.claude.hot && window.claude.hot.snapshot && window.claude.hot.snapshot(getSnapshot()); }catch(e){}
+  }
+  function applySnapshot(s){
+    if (!s) return;
+    try{
+      if (s.slots){
+        state.slots = s.slots.map(function(c){ return c ? byCode[c] : null; });
+        state.idx = s.idx || 0;
+        drawBtn.disabled = state.idx >= 4;
+      }
+      if (typeof s.trials === 'number'){ trialState.trials = s.trials; trialState.hits = s.hits || 0; }
+    }catch(e){}
+  }
+
+  function start(initial){
+    buildBeaker();
+    renderFreqTable();
+    renderFormula();
+    renderCompositionFormula();
+    applySnapshot(initial);
+    renderSlots();
+    renderReadout();
+    updateTrialsUI();
+  }
+
+  try{
+    if (window.claude && window.claude.hot && window.claude.hot.ready){
+      window.claude.hot.ready(start);
+    } else {
+      start((window.claude && window.claude.hot && window.claude.hot.data) || {});
+    }
+  }catch(e){ start({}); }
+
+})();
+</script>
